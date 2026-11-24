@@ -1,51 +1,16 @@
-var __create = Object.create;
-var __defProp = Object.defineProperty;
-var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropNames = Object.getOwnPropertyNames;
-var __getProtoOf = Object.getPrototypeOf;
-var __hasOwnProp = Object.prototype.hasOwnProperty;
-var __export = (target, all) => {
-  for (var name in all)
-    __defProp(target, name, { get: all[name], enumerable: true });
-};
-var __copyProps = (to, from, except, desc) => {
-  if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
-  }
-  return to;
-};
-var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__getProtoOf(mod)) : {}, __copyProps(
-  // If the importer is in node compatibility mode or this is not an ESM
-  // file that has been converted to a CommonJS file using a Babel-
-  // compatible transform (i.e. "__esModule" has not been set), then set
-  // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod || !mod.__esModule ? __defProp(target, "default", { value: mod, enumerable: true }) : target,
-  mod
-));
-var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
-
-// server/vercelHandler.ts
-var vercelHandler_exports = {};
-__export(vercelHandler_exports, {
-  default: () => vercelHandler_default
-});
-module.exports = __toCommonJS(vercelHandler_exports);
-
 // server/app.ts
-var import_express = __toESM(require("express"), 1);
+import express from "express";
 
 // server/lib/cacheStore.ts
-var import_node_fs = __toESM(require("node:fs"), 1);
-var import_node_os = __toESM(require("node:os"), 1);
-var import_node_path = __toESM(require("node:path"), 1);
-var LOCAL_CACHE_FILE = import_node_path.default.resolve(
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+var LOCAL_CACHE_FILE = path.resolve(
   process.cwd(),
   "server/data/classificationCache.json"
 );
-var TMP_CACHE_FILE = import_node_path.default.join(
-  import_node_os.default.tmpdir(),
+var TMP_CACHE_FILE = path.join(
+  os.tmpdir(),
   "jobcat-jp",
   "classificationCache.json"
 );
@@ -55,10 +20,10 @@ function resolveCacheFile() {
 }
 function writeJsonAtomic(targetPath, payload) {
   try {
-    import_node_fs.default.mkdirSync(import_node_path.default.dirname(targetPath), { recursive: true });
+    fs.mkdirSync(path.dirname(targetPath), { recursive: true });
     const tmp = `${targetPath}.tmp`;
-    import_node_fs.default.writeFileSync(tmp, payload, "utf8");
-    import_node_fs.default.renameSync(tmp, targetPath);
+    fs.writeFileSync(tmp, payload, "utf8");
+    fs.renameSync(tmp, targetPath);
     return true;
   } catch {
     return false;
@@ -74,9 +39,9 @@ var ClassificationCacheStore = class {
     if (this.loaded) return;
     this.loaded = true;
     try {
-      const target = import_node_fs.default.existsSync(resolveCacheFile()) ? resolveCacheFile() : import_node_fs.default.existsSync(TMP_CACHE_FILE) ? TMP_CACHE_FILE : null;
+      const target = fs.existsSync(resolveCacheFile()) ? resolveCacheFile() : fs.existsSync(TMP_CACHE_FILE) ? TMP_CACHE_FILE : null;
       if (target) {
-        const raw = import_node_fs.default.readFileSync(target, "utf8");
+        const raw = fs.readFileSync(target, "utf8");
         const parsed = JSON.parse(raw);
         if (parsed.entries) {
           for (const [k, v] of Object.entries(parsed.entries)) {
@@ -210,10 +175,10 @@ var ClassificationCacheStore = class {
 var cacheStore = new ClassificationCacheStore();
 
 // server/lib/geminiClassifier.ts
-var import_genai = require("@google/genai");
+import { GoogleGenAI, ThinkingLevel, Type } from "@google/genai";
 
 // server/lib/classifierRules.ts
-var import_node_crypto = __toESM(require("node:crypto"), 1);
+import crypto from "node:crypto";
 function normalizeTextForHash(text) {
   return (text || "").trim().replace(/\s+/g, " ");
 }
@@ -221,7 +186,7 @@ function computeJobMd5Hash(title, description, hashMode = "title_and_content") {
   const normTitle = normalizeTextForHash(title);
   const normDesc = normalizeTextForHash(description);
   const payload = hashMode === "title_only" ? normTitle : `${normTitle}|||${normDesc}`;
-  return import_node_crypto.default.createHash("md5").update(payload, "utf8").digest("hex");
+  return crypto.createHash("md5").update(payload, "utf8").digest("hex");
 }
 function buildCacheKey(platform, hashMode, md5) {
   return `${platform}:${hashMode}:${md5}`;
@@ -360,9 +325,9 @@ function clampConfidence(value) {
 }
 
 // server/lib/masterStore.ts
-var import_node_fs2 = __toESM(require("node:fs"), 1);
-var import_node_os2 = __toESM(require("node:os"), 1);
-var import_node_path2 = __toESM(require("node:path"), 1);
+import fs2 from "node:fs";
+import os2 from "node:os";
+import path2 from "node:path";
 
 // server/data/defaultMasterData.ts
 var DEFAULT_MASTER_DATA = {
@@ -6183,12 +6148,12 @@ var DEFAULT_MASTER_DATA = {
 };
 
 // server/lib/masterStore.ts
-var LOCAL_MASTER_FILE = import_node_path2.default.resolve(
+var LOCAL_MASTER_FILE = path2.resolve(
   process.cwd(),
   "server/data/masterCategories.json"
 );
-var TMP_MASTER_FILE = import_node_path2.default.join(
-  import_node_os2.default.tmpdir(),
+var TMP_MASTER_FILE = path2.join(
+  os2.tmpdir(),
   "jobcat-jp",
   "masterCategories.json"
 );
@@ -6196,7 +6161,7 @@ function resolveReadableOverrideFile() {
   const candidates = process.env.VERCEL ? [TMP_MASTER_FILE, LOCAL_MASTER_FILE] : [LOCAL_MASTER_FILE, TMP_MASTER_FILE];
   for (const candidate of candidates) {
     try {
-      if (import_node_fs2.default.existsSync(candidate)) return candidate;
+      if (fs2.existsSync(candidate)) return candidate;
     } catch {
     }
   }
@@ -6204,10 +6169,10 @@ function resolveReadableOverrideFile() {
 }
 function writeJsonAtomic2(targetPath, payload) {
   try {
-    import_node_fs2.default.mkdirSync(import_node_path2.default.dirname(targetPath), { recursive: true });
+    fs2.mkdirSync(path2.dirname(targetPath), { recursive: true });
     const tmp = `${targetPath}.tmp`;
-    import_node_fs2.default.writeFileSync(tmp, payload, "utf8");
-    import_node_fs2.default.renameSync(tmp, targetPath);
+    fs2.writeFileSync(tmp, payload, "utf8");
+    fs2.renameSync(tmp, targetPath);
     return true;
   } catch {
     return false;
@@ -6222,7 +6187,7 @@ var MasterStore = class {
     const readableFile = resolveReadableOverrideFile();
     if (readableFile) {
       try {
-        const raw = import_node_fs2.default.readFileSync(readableFile, "utf8");
+        const raw = fs2.readFileSync(readableFile, "utf8");
         this.data = JSON.parse(raw);
         return this.data;
       } catch {
@@ -6356,7 +6321,7 @@ ${singleRaw}`.split(/[\n,]+/).map((k) => k.trim()).filter(Boolean);
   return Array.from(new Set(combined));
 }
 function createAiClient(apiKey) {
-  return new import_genai.GoogleGenAI({
+  return new GoogleGenAI({
     apiKey,
     httpOptions: {
       headers: {
@@ -6403,28 +6368,28 @@ function formatGeminiError(err, allModelsExhausted = false) {
   };
 }
 var RESPONSE_SCHEMA = {
-  type: import_genai.Type.OBJECT,
+  type: Type.OBJECT,
   properties: {
     results: {
-      type: import_genai.Type.ARRAY,
+      type: Type.ARRAY,
       items: {
-        type: import_genai.Type.OBJECT,
+        type: Type.OBJECT,
         properties: {
           index: {
-            type: import_genai.Type.INTEGER,
+            type: Type.INTEGER,
             description: "\u5165\u529B\u6C42\u4EBA\u306Eindex\u756A\u53F7"
           },
           reasoning: {
-            type: import_genai.Type.STRING,
+            type: Type.STRING,
             description: "\u8868\u9762\u7684\u306A\u5358\u8A9E\u3067\u306F\u306A\u304F\u3001\u696D\u52D9\u306E\u672C\u8CEA\u3068\u4E3B\u76EE\u7684\u3092\u5206\u6790\u3057\u305FChain-of-Thought\u63A8\u8AD6"
           },
           categories: {
-            type: import_genai.Type.ARRAY,
-            items: { type: import_genai.Type.STRING },
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
             description: '\u30DE\u30B9\u30BF\u30FC\u30EA\u30B9\u30C8\u3068100%\u5B8C\u5168\u4E00\u81F4\u3059\u308B\u30AB\u30C6\u30B4\u30EA\u30FC\u914D\u5217\u3001\u307E\u305F\u306F ["NONE"]'
           },
           confidence: {
-            type: import_genai.Type.INTEGER,
+            type: Type.INTEGER,
             description: "\u5224\u5B9A\u306E\u78BA\u4FE1\u5EA6 (0\u301C100)"
           }
         },
@@ -6442,7 +6407,7 @@ async function invokeModel(ai, model, systemInstruction, userPrompt) {
       systemInstruction,
       seed: 42,
       responseMimeType: "application/json",
-      ...model === "gemini-4-hydrogen" ? { thinkingConfig: { thinkingLevel: import_genai.ThinkingLevel.LOW } } : {},
+      ...model === "gemini-4-hydrogen" ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {},
       responseSchema: RESPONSE_SCHEMA
     }
   });
@@ -6837,8 +6802,8 @@ function parseHashMode(val) {
   return "title_and_content";
 }
 function createApiApp() {
-  const app2 = (0, import_express.default)();
-  app2.use(import_express.default.json({ limit: "15mb" }));
+  const app2 = express();
+  app2.use(express.json({ limit: "15mb" }));
   app2.use("/assets/aistudio", (_req, res) => {
     res.status(403).json({ error: "Access denied" });
   });
@@ -7010,3 +6975,6 @@ function createApiApp() {
 // server/vercelHandler.ts
 var app = createApiApp();
 var vercelHandler_default = app;
+export {
+  vercelHandler_default as default
+};

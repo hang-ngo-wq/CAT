@@ -1,12 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import { createRequire } from 'node:module';
+import { pathToFileURL } from 'node:url';
+import path from 'node:path';
 
-const require = createRequire(import.meta.url);
+test('Vercel ESM handler (api/index.js) serves /api/v1/health and /api/v1/master', async () => {
+  const modUrl = pathToFileURL(path.resolve(process.cwd(), 'api/index.js')).href;
+  const mod = (await import(modUrl)) as { default: http.RequestListener };
+  const vercelHandler = mod.default;
+  assert.equal(typeof vercelHandler, 'function');
 
-test('Vercel CommonJS handler (api/index.cjs) serves /api/v1/health and /api/v1/master', async () => {
-  const vercelHandler = require('../../api/index.cjs') as http.RequestListener;
   const server = http.createServer(vercelHandler);
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
 
