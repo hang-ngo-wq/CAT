@@ -1,9 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import vercelHandler from '../../api/index';
+import { createRequire } from 'node:module';
 
-test('Vercel serverless Express handler serves /api/v1/health and /api/v1/master', async () => {
+const require = createRequire(import.meta.url);
+
+test('Vercel CommonJS handler (api/index.cjs) serves /api/v1/health and /api/v1/master', async () => {
+  const vercelHandler = require('../../api/index.cjs') as http.RequestListener;
   const server = http.createServer(vercelHandler);
   await new Promise<void>((resolve) => server.listen(0, '127.0.0.1', resolve));
 
@@ -33,6 +36,13 @@ test('Vercel serverless Express handler serves /api/v1/health and /api/v1/master
     assert.equal(masterJson.kbx.length, 26);
     assert.ok(masterJson.indeed.length > 1000);
     assert.ok(masterJson.kyujinbu.length > 500);
+
+    const badClassify = await fetch(`${baseUrl}/api/v1/classify`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ platform: 'indeed', title: '', description: '' }),
+    });
+    assert.equal(badClassify.status, 400);
   } finally {
     await new Promise<void>((resolve, reject) =>
       server.close((err) => (err ? reject(err) : resolve()))
