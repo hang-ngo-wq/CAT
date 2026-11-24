@@ -1,14 +1,13 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import type {
   GroupedCategoryItem,
   MasterData,
   Platform,
 } from '../../src/types/classifier';
+import { DEFAULT_MASTER_DATA } from '../data/defaultMasterData';
 
-const HERE = path.dirname(fileURLToPath(import.meta.url));
 const LOCAL_MASTER_FILE = path.resolve(
   process.cwd(),
   'server/data/masterCategories.json'
@@ -19,16 +18,17 @@ const TMP_MASTER_FILE = path.join(
   'masterCategories.json'
 );
 
-function resolveReadableMasterFile(): string | null {
-  const candidates = [
-    ...(process.env.VERCEL ? [TMP_MASTER_FILE] : []),
-    LOCAL_MASTER_FILE,
-    path.resolve(HERE, '../data/masterCategories.json'),
-    path.resolve(HERE, '../server/data/masterCategories.json'),
-    TMP_MASTER_FILE,
-  ];
+function resolveReadableOverrideFile(): string | null {
+  const candidates = process.env.VERCEL
+    ? [TMP_MASTER_FILE, LOCAL_MASTER_FILE]
+    : [LOCAL_MASTER_FILE, TMP_MASTER_FILE];
+
   for (const candidate of candidates) {
-    if (fs.existsSync(candidate)) return candidate;
+    try {
+      if (fs.existsSync(candidate)) return candidate;
+    } catch {
+      // Ignore inaccessible paths in restricted runtimes
+    }
   }
   return null;
 }
@@ -50,21 +50,24 @@ class MasterStore {
 
   getMasterData(): MasterData {
     if (this.data) return this.data;
-    const readableFile = resolveReadableMasterFile();
-    if (!readableFile) {
-      this.data = {
-        indeed: [],
-        kbx: [],
-        kyujinbu: [],
-        airworkMap: {},
-        jobopMap: {},
-        updatedAt: new Date().toISOString(),
-        source: 'empty',
-      };
-      return this.data;
+    const readableFile = resolveReadableOverrideFile();
+    if (readableFile) {
+      try {
+        const raw = fs.readFileSync(readableFile, 'utf8');
+        this.data = JSON.parse(raw) as MasterData;
+        return this.data;
+      } catch {
+        // Fall through to bundled default master data
+      }
     }
-    const raw = fs.readFileSync(readableFile, 'utf8');
-    this.data = JSON.parse(raw) as MasterData;
+    this.data = {
+      ...DEFAULT_MASTER_DATA,
+      indeed: [...DEFAULT_MASTER_DATA.indeed],
+      kbx: [...DEFAULT_MASTER_DATA.kbx],
+      kyujinbu: [...DEFAULT_MASTER_DATA.kyujinbu],
+      airworkMap: { ...DEFAULT_MASTER_DATA.airworkMap },
+      jobopMap: { ...DEFAULT_MASTER_DATA.jobopMap },
+    };
     return this.data;
   }
 
