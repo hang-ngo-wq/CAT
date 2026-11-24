@@ -1,0 +1,8 @@
+{
+  "name": "JobCat JP — Phân loại nghề nghiệp chuẩn Nhật Bản",
+  "description": "Công cụ AI phân loại danh mục nghề nghiệp tuyển dụng Nhật Bản (Indeed, 求人ボックス, 求人部) với bộ nhớ đệm MD5, suy luận Chain-of-Thought, xử lý lô Excel và REST API.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
